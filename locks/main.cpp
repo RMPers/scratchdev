@@ -19,9 +19,8 @@ struct tas_lock {
     }
 
     void lock_bbx() {
-        std::thread::id tid = std::this_thread::get_id();
-        int expected = 0;
         do {
+            int expected = 0;
             if (__atomic_compare_exchange_n(&bbx_lock_, &expected, 1,
                                             0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)) {
                 break;
@@ -43,9 +42,11 @@ void Threadfunc()
     for (int i = 0; i < 10000; i++)
     {
         lock.lock_fast();
+        //lock.lock_bbx();
         counter++;
         //std::cout << "Thread id " << std::this_thread::get_id() << ", counter " << counter << std::endl;
         lock.unlock();
+        //lock.unlock_bbx();
     }
 }
 
