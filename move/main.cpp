@@ -13,7 +13,7 @@ public:
     Myclass(const Myclass &_x) : a(_x.a) { std::cout << "copy constructor(const&)\n"; }
     Myclass &operator=(const Myclass &_x) {
         a = _x.a;
-        std::cout << "copy assignement constructor(&)\n";
+        std::cout << "copy assignement constructor(const&)\n";
         return *this;
     }
     Myclass(Myclass &&_x) : a(_x.a) {
@@ -22,16 +22,16 @@ public:
     }
     Myclass &operator=(const Myclass &&_x) {
         a = _x.a;
-        std::cout << "move assignement constructor(&&)\n";
+        std::cout << "move assignement constructor(const&&)\n";
         return *this;
     }
 
     int a;
 };
 
-int foo(Myclass x);
+Myclass foo(Myclass x);
 
-int bar(Myclass &x);
+Myclass bar(Myclass &x);
 
 int main() {
     Myclass a{10}; // Create and initalize a.a = 10 using direct
@@ -40,19 +40,24 @@ int main() {
     Myclass b(std::move(a)); // Creates b using move constructor which steals value from a.
     std::cout << "a=" << a.a << "!\n";
     std::cout << "b=" << b.a << "!\n\n";
-    
-    Myclass bvar{0}; // Creates bvar using direct constructor
+
+    Myclass aref = a;
+    Myclass bvar{aref}; // Creates bvar using copy constructor (same as bvar{a})
     bvar = b; // Copies bvar using copy assignement constructor.
     std::cout << "bvar=" << bvar.a << "!\n\n";
+    a.a = 100;
+
+    bvar = std::move(a); // assigns bvar using move assignement constructor
+    std::cout << "bvar=" << bvar.a << "!\n\n";
     
-    int c = foo(b); // pass b as lvalue which will trigger copy construction of x
+    Myclass c = foo(b); // pass b as lvalue which will trigger copy construction of x. Copy construction on return
     std::cout << "b=" << b.a << "!\n";
-    std::cout << "c=" << c << "!\n\n";
+    std::cout << "c=" << c.a << "!\n\n";
 
     c = bar(b); // pass b as lvalue ref which omit copy construction of x. bar
-                // will work directly on b
+                // will work directly on b. Move assignement on return
     std::cout << "b=" << b.a << "!\n";
-    std::cout << "c=" << c << "!\n\n";
+    std::cout << "c=" << c.a << "!\n\n";
 
     int &&z{42}; // declare a rvalue ref z referring to 42
     auto &&zref = z; // zref becomes lvalue ref (int&)
@@ -60,14 +65,14 @@ int main() {
     return 0;
 }
 
-int foo(Myclass x) {
-    int y = x.a + 10;
+Myclass foo(Myclass x) {
+    Myclass y(x.a + 10);
     x.a = 5;
     return y;
 }
 
-int bar(Myclass &x) {
-    int y = x.a + 10;
+Myclass bar(Myclass &x) {
+    Myclass y(x.a + 10);
     x.a = 5;
     return y;
 }
