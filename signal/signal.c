@@ -59,7 +59,7 @@ void sighandler_time(int signum)
 {
 
     alarm(0); /* shutoff alarm */
-    
+
     if (signum == SIGINT) printf("Interrupt ");
     if (signum == SIGALRM) printf("Timer ");
 
@@ -76,6 +76,9 @@ void sighandler_demand(int signum)
     scanf("%d", &sel);
     if (sel == 0)
         exit(0);
+
+    signal(signum, SIG_DFL); // changes disposition of signal to SIG_DFL. Next time this signal will be handled
+                             // by default signal handler
 }
 
 __attribute__((constructor))
